@@ -1,71 +1,102 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { PlusIcon, 
+         ArrowLeftStartOnRectangleIcon,
+         MagnifyingGlassIcon, 
+         Cog6ToothIcon ,
+         UserIcon
+        } from "@heroicons/react/24/outline";
+import { useNavigate } from "react-router-dom";
+import { getAllContacts } from "../api/contactService";
+import { API_URL } from "../api/api";
 
-const ContactsList = ({setShowForm,contacts, onSelectContact, manageUsers}) => {
-
+const ContactsList = ({ setShowForm, setShowSearch, onSelectContact, manageUsers, refresh }) => {
+  const [contacts, setContacts] = useState([]);
   const [filter, setFilter] = useState("Todos"); // Estado para filtrar
+  const navigate = useNavigate()
+
+  // Llamar a la API para obtener los contactos
+  useEffect(() => {
+    const fetchContacts = async () => {
+      try {
+        const data = await getAllContacts();
+        // console.log(data)
+        setContacts(data.contacts); // Almacena los contactos en el estado
+      } catch (error) {
+        console.error('Error al obtener los contactos:', error);
+      }
+    };
+
+    fetchContacts();
+  }, [refresh]); 
 
   // Filtrar contactos según la categoría seleccionada
   const filteredContacts = contacts.filter((contact) => {
     if (filter === "Todos") return true;
-    return contact.role === filter;
+    return contact.RoleId === filter;
   });
 
   // Ordenar contactos alfabéticamente
   const sortedContacts = [...filteredContacts].sort((a, b) =>
-    a.firstName.localeCompare(b.firstName)
+    a.first_name.localeCompare(b.first_name)
   );
 
   // Extraer las letras iniciales para el abecedario
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
-  return (
-    
-    <div className="w-1/3 bg-gray-100 ">
-          <div className="flex justify-between mx-4 mt-4 ">
-            <div>
-              <span className="cursor-pointer" onClick={() => manageUsers(true)}>
-                <box-icon name='cog' size='md'  color='gray'></box-icon>
-              </span>
-            </div>
-          
-            <div className="space-x-4">
-              <span className="cursor-pointer" onClick={() => setShowForm(true)}>
-                <box-icon name='plus' size='md' type='solid' color='gray'></box-icon>
-              </span>
-              <span className="cursor-pointer" >
-                <box-icon name='log-in' size='md'  color='gray'></box-icon>
-              </span>
-            </div>
-          </div>
+  const handleLogout = () => {
+    localStorage.removeItem("token"); // Eliminar token del almacenamiento local
+    navigate("/");  // Redirige al usuario al login
+  };
 
-           {/* Botones de filtro */}
-          <div className="flex justify-center space-x-4 mt-4">
-            <button
-              className={`px-4 py-2 rounded-lg ${
-                filter === "Todos" ? "bg-purple-500 text-white" : "bg-gray-300"
-              }`}
-              onClick={() => setFilter("Todos")}
-            >
-              Todos
-            </button>
-            <button
-              className={`px-4 py-2 rounded-lg ${
-                filter === "Cliente" ? "bg-blue-500 text-white" : "bg-gray-300"
-              }`}
-              onClick={() => setFilter("Cliente")}
-            >
-              Clientes
-            </button>
-            <button
-              className={`px-4 py-2 rounded-lg ${
-                filter === "Empleado" ? "bg-green-500 text-white" : "bg-gray-300"
-              }`}
-              onClick={() => setFilter("Empleado")}
-            >
-              Empleados
-            </button>
+  return (
+
+    <div className="w-[28%] bg-gray-100 ">
+      <div className="flex justify-between mx-4 mt-4 ">
+        <div>
+          <Cog6ToothIcon className="w-6 h-6 text-gray-500 cursor-pointer" 
+          onClick={() => manageUsers(true)} />
+
+        </div>
+
+        <div className="flex space-x-4">
+
+          <MagnifyingGlassIcon className="w-6 h-6 text-gray-500 cursor-pointer"
+           onClick={() => setShowSearch(true)} />
+
+          <PlusIcon className="w-6 h-6 text-gray-500 cursor-pointer" 
+          onClick={() => setShowForm(true)} />
+
+          <ArrowLeftStartOnRectangleIcon className="w-6 h-6 text-gray-500 cursor-pointer"
+          onClick={()=> handleLogout()} />
+
+        </div>
       </div>
-      <div className=" flex h-[90vh]  overflow-y-auto ">
+
+      {/* Botones de filtro */}
+      <div className="flex justify-center space-x-4 mt-4">
+        <button
+          className={`px-4 py-2 rounded-lg ${filter === "Todos" ? "bg-purple-500 text-white" : "bg-gray-300"
+            }`}
+          onClick={() => setFilter("Todos")}
+        >
+          Todos
+        </button>
+        <button
+          className={`px-4 py-2 rounded-lg ${filter === 1 ? "bg-blue-500 text-white" : "bg-gray-300"
+            }`}
+          onClick={() => setFilter(1)}
+        >
+          Clientes
+        </button>
+        <button
+          className={`px-4 py-2 rounded-lg ${filter === 2 ? "bg-indigo-500 text-white" : "bg-gray-300"
+            }`}
+          onClick={() => setFilter(2)}
+        >
+          Empleados
+        </button>
+      </div>
+      <div className=" flex h-[80vh]  overflow-y-auto ">
 
         <div className=" p-4">
           <ul className="space-y-2 text-center">
@@ -81,32 +112,32 @@ const ContactsList = ({setShowForm,contacts, onSelectContact, manageUsers}) => {
 
             <ul className="divide-y divide-gray-300">
               {sortedContacts.map((contact) => (
-                <li key={contact.id} className="p-3 rounded-lg flex items-center cursor-pointer hover:bg-purple-200 transition-all" 
-                 onClick={() => onSelectContact(contact)}>
+                <li key={contact.id} className="p-3 rounded-lg flex items-center cursor-pointer hover:bg-purple-200 transition-all"
+                  onClick={() => onSelectContact(contact)}>
 
                   <div className="w-10 h-10 rounded-full overflow-hidden border mr-4 border-purple-300">
-                  { contact.image ? (
+                    {contact.image ? (
                       <img
-                        src={contact.image}
-                        alt={contact.firstName}
+                        src={API_URL + contact.image}
+                        alt={contact.first_name}
                         className=" w-full h-full  object-cover"
                       />
                     ) : (
                       <div className="flex items-center justify-center w-full h-full bg-purple-200">
-                        <box-icon name='user' size='sm' type='solid' color='gray'></box-icon>
+                        <UserIcon className="w-6 h-6 text-gray-900 cursor-pointer" />
                       </div>
                     )
-                  }
+                    }
                   </div>
 
-                  <span className="text-gray-800 font-medium">{contact.firstName + " " + contact.lastName}</span>
+                  <span className="text-gray-800 font-medium">{contact.first_name + " " + contact.last_name}</span>
                 </li>
               ))}
             </ul>
           </div>
         </div>
       </div>
-      </div>
+    </div>
 
   );
 };

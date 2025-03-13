@@ -1,12 +1,12 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { getUsersRole } from "../api/userService";
+import { register } from "../api/authService";
 
 export const Register = () => {
-
-  const userCategory = [
-    "administrador",
-    "usuario"
-  ]
+  const navigate= useNavigate();
+  const [userCategory, setUserCategory] = useState([]);
+  const [error, setError] = useState("");
 
   const [formData, setFormData] = useState({
     typeUser:"",
@@ -15,13 +15,25 @@ export const Register = () => {
     password: "",
     confirmPassword: "",
   });
-  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const roles = await getUsersRole();  // Obtener roles de usuario
+        setUserCategory(roles);  // Actualizar el estado con los roles
+      } catch (error) {
+        console.error('Error al obtener roles:', error);
+      }
+    };
+
+    fetchRoles();
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault();
     setError("");
 
@@ -36,9 +48,31 @@ export const Register = () => {
       return;
     }
 
-    console.log("Registering user:", formData);
-
-    // Here, you can send the formData to your API
+    try {
+      const userData = {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        roleId: Number(formData.typeUser),
+      };
+      console.log(userData)
+      // Llamada al servicio de registro
+      const response = await register(userData);
+      
+      console.log('Usuario registrado exitosamente:', response);
+      // Redirigir al login o mostrar un mensaje
+      navigate('/');
+    } catch (error) {
+      console.error('Error al registrar usuario:', error);
+      if (error.response) {
+        // Si la respuesta del backend tiene un error
+        setError(error.response.data.error || "Error desconocido al registrar");
+      } else {
+        // En caso de que no haya respuesta, mostrar un error genérico
+        setError("Error al registrar el usuario. Por favor, intenta nuevamente.");
+      }
+    }
+      
   };
 
   return (
@@ -57,10 +91,14 @@ export const Register = () => {
             className=" w-full border p-2 rounded-lg focus:outline-none focus:ring-4 focus:ring-purple-500"
             onChange={handleChange} value={formData.typeUser}>
               <option value="">selecciona</option>
-              {userCategory.map((type)=>(
-                <option value={type} key={type}>{type}</option>
-              ))
-              }
+              {userCategory.length > 0 ? (
+                userCategory.map((role)=>(
+                  <option value={role.id} key={role.id}>{role.name}</option>
+                )) 
+              ): (
+                <option value="">Cargando roles...</option>
+              )}
+              
             </select>
 
           </div>
@@ -124,7 +162,7 @@ export const Register = () => {
 
         <p className="text-sm text-gray-500 text-center mt-4">
           ¿Ya tienes una cuenta?{" "}
-          <Link to="/login" className="text-purple-500 hover:underline">
+          <Link to="/" className="text-purple-500 hover:underline">
             Iniciar sessiòn
           </Link>
         </p>

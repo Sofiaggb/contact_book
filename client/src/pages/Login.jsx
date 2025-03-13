@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { login } from "../api/authService";
 
 export const Login = () => {
   const [email, setEmail] = useState("");
@@ -8,7 +9,7 @@ export const Login = () => {
 
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault();
     setError(""); // Clear previous errors
 
@@ -18,10 +19,39 @@ export const Login = () => {
       return;
     }
 
-    // Simulating authentication
-    console.log("Logging in with:", { email, password });
+    try {
+      // Llamada a la función `login` para autenticar
+      const response = await login(email, password);  
 
-    navigate("/d");
+      // Si el login es exitoso, se redirige a otra página
+      console.log("Usuario autenticado:", response);
+
+       // Guardar token con tiempo de expiración
+       const expiresInMinutes =60; // Define el tiempo de expiración (en minutos)
+       const now = new Date().getTime(); // Tiempo actual en ms
+       const expirationTime = now + expiresInMinutes * 60 * 1000;
+ 
+       const tokenData = {
+         value: response.token,
+         expiration: expirationTime
+       };
+ 
+       localStorage.setItem("token", JSON.stringify(tokenData));
+      // guardar token  en el localStorage o en cookies
+      // localStorage.setItem("token", response.token); 
+
+      // Redirigir a la página de inicio después del login exitoso
+      navigate("/dashboard"); 
+    } catch (error) {
+      console.error("Error al iniciar sesión:", error);
+      if (error.response) {
+        // Si la respuesta del backend tiene un error
+        setError(error.response.data.error || "Error desconocido al iniciar sesión");
+      } else {
+        // En caso de que no haya respuesta, mostrar un error genérico
+        setError("Error al conectar con el servidor.");
+      }
+    }
   };
 
   return (

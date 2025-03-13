@@ -1,24 +1,42 @@
+import { UserIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
+import {getRoles, getDepartments } from "../api/contactService";
+import { API_URL } from "../api/api";
 
 export const FormContact = ({ addContact, editingContact, updateContact}) => {
-  
 
-  const employeeCategories = [
-    "Administrativo",
-    "Ventas",
-    "Soporte Técnico",
-    "Recursos Humanos",
-    "Producción",
-  ];
+  const [roles, setRoles] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    // Obtener roles y departamentos
+    const fetchRolesAndDepartments = async () => {
+      try {
+        const rolesData = await getRoles();
+        const departmentsData = await getDepartments();
+        setRoles(rolesData);
+        setDepartments(departmentsData);
+      } catch (error) {
+        console.error("Error fetching roles and departments:", error);
+      }
+    };
+
+    fetchRolesAndDepartments();
+  }, []);
 
   const initialState = {
-    firstName: "",
-    lastName: "",
+    first_name: "",
+    last_name: "",
     phone: "",
+    other_phone: "",
     email: "",
     address: "",
-    role: "Cliente",
-    employeeCategory: "",
+    roleId: "",  
+    departmentId: "", 
+    gender: "",
+    image: "",
+    birthday: "",
   };
 
   const [contact, setContact] = useState(initialState);
@@ -26,14 +44,19 @@ export const FormContact = ({ addContact, editingContact, updateContact}) => {
   // Cuando editingContact cambia, actualizar el estado con los datos o limpiar si es null
   useEffect(() => {
     if (editingContact) {
+      
       setContact({
-        firstName: editingContact.firstName ?? "",
-        lastName: editingContact.lastName ?? "",
+        first_name: editingContact.first_name ?? "",
+        last_name: editingContact.last_name ?? "",
         phone: editingContact.phone ?? "",
+        other_phone: editingContact.other_phone ?? "",
         email: editingContact.email ?? "",
         address: editingContact.address ?? "",
-        role: editingContact.role ?? "Cliente",
-        employeeCategory: editingContact.employeeCategory ?? "",
+        roleId: editingContact.RoleId ?? "",
+        departmentId: editingContact.DepartmentId ?? "",
+        gender: editingContact.gender ?? "",
+        image: editingContact.image ?? "",
+        birthday: new Date(editingContact.birthday).toISOString().split("T")[0] ?? "",
       });
     } else {
       setContact(initialState); // Restablecer formulario al cambiar a "Nuevo Contacto"
@@ -48,35 +71,60 @@ export const FormContact = ({ addContact, editingContact, updateContact}) => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setContact({ ...contact, image: reader.result });
-      };
-      reader.readAsDataURL(file);
+      const imageURL = URL.createObjectURL(file); // Generar la URL temporal
+      setContact((prevContact) => ({
+        ...prevContact,
+        imageURL: imageURL, // Usar la URL temporal para mostrar la imagen
+        image: file // Guardar el archivo real para enviarlo en el FormData
+      }));
     }
   };
+  
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault();
+    setError("");
 
-    if (contact.firstName && contact.lastName && contact.phone) {
-      if (editingContact) {
-        updateContact(contact); // Edita el contacto existente
+    try {
+        const formData = new FormData();
+    
+        // Agrega los demás campos
+        formData.append("first_name", contact.first_name);
+        formData.append("last_name", contact.last_name);
+        formData.append("phone", contact.phone);
+        formData.append("other_phone", contact.other_phone);
+        formData.append("email", contact.email);
+        formData.append("address", contact.address);
+        formData.append("roleId", contact.roleId);
+        formData.append("gender", contact.gender);
+        formData.append("birthday", contact.birthday);
+        formData.append("image", contact.image);
+        if (contact.departmentId !== null && contact.departmentId !== "") {
+          formData.append("departmentId", contact.departmentId);
+        } 
+    
+        if (editingContact) {
+          // Llamar a la función para editar el contacto 
+          console.log(formData);
+          updateContact(editingContact.id, formData); 
+        } else {
+          
+          console.log(formData);
+          addContact(formData);
+          // Reiniciar el formulario
+          setContact(initialState);
+        }
+    } catch (error) {
+      console.error('Error al registrar/actualizar usuario:', error);
+      if (error.response) {
+        // Si la respuesta del backend tiene un error
+        setError(error.response.data.error || "Error desconocido al registrar");
       } else {
-        addContact({ ...contact, id: Date.now() }); // Agrega un nuevo contacto
+        // En caso de que no haya respuesta, mostrar un error genérico
+        setError("Error al registrar el usuario. Por favor, intenta nuevamente.");
       }
-
-      // Reiniciar formulario
-      setContact({
-        firstName: "",
-        lastName: "",
-        phone: "",
-        email: "",
-        address: "",
-        role: "Cliente",
-        employeeCategory: "",
-      });
     }
+
   };
 
   return (
@@ -90,17 +138,20 @@ export const FormContact = ({ addContact, editingContact, updateContact}) => {
             <div className="relative">
               {/* Imagen redonda */}
               <div className="w-32 h-32 rounded-full overflow-hidden border border-purple-300">
-                {contact.image ? (
-                  <img src={contact.image} alt="Profile" className="w-full h-full object-cover" />
+                {editingContact && editingContact.image ? (
+                  <img src={API_URL + editingContact.image} alt="Profile" className="w-full h-full object-cover" />
+                ): contact.imageURL ? (
+                  <img src={contact.imageURL} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
+
                   <div className="flex items-center justify-center w-full h-full bg-purple-200">
-                    <box-icon name='user' size='lg' type='solid' color='gray'></box-icon>
+                    <UserIcon className="w-3/4 h-3/4"/>
                   </div>
                 )}
               </div>
               {/* Símbolo de "+" */}
-              <label htmlFor="image" className="absolute bottom-1 right-1 bg-purple-500 text-white rounded-full p-1.5 cursor-pointer w-8 h-8 flex items-center justify-center">
-                <box-icon name='plus' color='white' size='sm'></box-icon>
+              <label htmlFor="image" className="absolute bottom-1 right-1 bg-purple-500  rounded-full p-1.5 cursor-pointer w-8 h-8 flex items-center justify-center">
+                <PlusIcon className="text-white w-full h-full"  />
               </label>
               <input
                 type="file"
@@ -116,8 +167,8 @@ export const FormContact = ({ addContact, editingContact, updateContact}) => {
             <label className="block text-gray-700 font-medium">Nombre</label>
             <input
               type="text"
-              name="firstName"
-              value={contact.firstName}
+              name="first_name"
+              value={contact.first_name}
               onChange={handleChange}
               className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               required
@@ -128,8 +179,8 @@ export const FormContact = ({ addContact, editingContact, updateContact}) => {
             <label className="block text-gray-700 font-medium">Apellido</label>
             <input
               type="text"
-              name="lastName"
-              value={contact.lastName}
+              name="last_name"
+              value={contact.last_name}
               onChange={handleChange}
               className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               required
@@ -152,8 +203,8 @@ export const FormContact = ({ addContact, editingContact, updateContact}) => {
             <label className="block text-gray-700 font-medium">Otro teléfono</label>
             <input
               type="tel"
-              name="otherPhone"
-              value={contact.otherPhone}
+              name="other_phone"
+              value={contact.other_phone}
               onChange={handleChange}
               className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               required
@@ -190,53 +241,47 @@ export const FormContact = ({ addContact, editingContact, updateContact}) => {
             </div>
           </div>
 
-          {/* Radio Button - Cliente / Empleado */}
-          <div >
-            <label className="block text-gray-700 font-medium mb-2 text-center">Tipo de contacto</label>
-            <div className="flex gap-4 justify-center">
-              <label className="flex items-center ">
-                <input
-                  type="radio"
-                  name="role"
-                  value="Cliente"
-                  checked={contact.role === "Cliente"}
-                  onChange={handleChange}
-                  className="mr-2 size-5 border-gray-300 text-purple-500"
-                />
-                Cliente
-              </label>
-
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="role"
-                  value="Empleado"
-                  checked={contact.role === "Empleado"}
-                  onChange={handleChange}
-                  className="mr-2 size-5 border-gray-300 text-purple-500"
-                />
-                Empleado
-              </label>
-            </div>
-          </div>
-
-          {/* Selección de Categoría (Solo si es Empleado) */}
-          {contact.role === "Empleado" && (
-            <div>
+          <div>
               <label className="block text-gray-700 font-medium">Categoría de Empleado</label>
               <select
-                name="employeeCategory"
-                value={contact.employeeCategory}
+                name="roleId"
+                // value={editingContact ? editingContact.roleId : contact.roleId} 
+                value={contact.roleId}
                 onChange={handleChange}
                 className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                 required
               >
                 <option value="">Seleccione una categoría</option>
-                {employeeCategories.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
+
+                {
+                  roles.map((role) => (
+                    <option key={role.id} value={role.id}>
+                      {role.name}
+                    </option>
+                  ))
+                }
+              </select>
+            </div>
+
+          {/* Selección de Categoría (Solo si es Empleado) */}
+          {contact.roleId == 2 && (
+            <div>
+              <label className="block text-gray-700 font-medium">Departamento del Empleado</label>
+              <select
+                name="departmentId"
+                value={contact.departmentId}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                required
+              >
+                <option value="">Seleccione una categoría</option>
+                {
+                  departments.map((department) => (
+                    <option key={department.id} value={department.id}>
+                      {department.name}
+                    </option>
+                  ))
+                }
               </select>
             </div>
           )}
@@ -257,7 +302,7 @@ export const FormContact = ({ addContact, editingContact, updateContact}) => {
             <input
               type="date"
               name="birthday"
-              value={contact.birthday || ''}
+              value={contact.birthday}
               onChange={handleChange}
               className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
@@ -277,7 +322,7 @@ export const FormContact = ({ addContact, editingContact, updateContact}) => {
           />
         </div>
 
-
+        {error && <p className="mb-4 text-red-500 text-sm text-center">{error}</p>}
 
         {/* Botón de Enviar */}
         <div className="text-center">
