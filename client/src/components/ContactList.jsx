@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PlusIcon, 
          ArrowLeftStartOnRectangleIcon,
          MagnifyingGlassIcon, 
@@ -8,10 +8,15 @@ import { PlusIcon,
 import { useNavigate } from "react-router-dom";
 import { getAllContacts } from "../api/contactService";
 import { API_URL } from "../api/api";
+import { logout } from "../api/authService";
+import Swal from "sweetalert2";
 
 const ContactsList = ({ setShowForm, setShowSearch, onSelectContact, manageUsers, refresh }) => {
   const [contacts, setContacts] = useState([]);
   const [filter, setFilter] = useState("Todos"); // Estado para filtrar
+  const [selectedLetter, setSelectedLetter] = useState(null); 
+  const letterRefs = useRef({});
+
   const navigate = useNavigate()
 
   // Llamar a la API para obtener los contactos
@@ -31,8 +36,9 @@ const ContactsList = ({ setShowForm, setShowSearch, onSelectContact, manageUsers
 
   // Filtrar contactos según la categoría seleccionada
   const filteredContacts = contacts.filter((contact) => {
-    if (filter === "Todos") return true;
-    return contact.RoleId === filter;
+    if (filter !== "Todos" && contact.RoleId !== filter) return false; // No cumple con el filtro de categoría
+    return true;
+
   });
 
   // Ordenar contactos alfabéticamente
@@ -40,12 +46,57 @@ const ContactsList = ({ setShowForm, setShowSearch, onSelectContact, manageUsers
     a.first_name.localeCompare(b.first_name)
   );
 
+   // Asignar referencia a cada contacto en el DOM
+   const setContactRef = (element, id) => {
+    if (element) {
+      letterRefs.current[id] = element;
+    }
+  };
+
+  useEffect(() => {
+    if (selectedLetter) {
+      const firstContact = sortedContacts.find((contact) =>
+        contact.first_name.toUpperCase().startsWith(selectedLetter)
+      );
+
+      if (firstContact && letterRefs.current[firstContact.id]) {
+        letterRefs.current[firstContact.id].scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
+    }
+  }, [selectedLetter, sortedContacts]);
+
   // Extraer las letras iniciales para el abecedario
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
-  const handleLogout = () => {
-    localStorage.removeItem("token"); // Eliminar token del almacenamiento local
-    navigate("/");  // Redirige al usuario al login
+  const handleLogout = async() => {
+
+    Swal.fire({
+          title: "Cerrar sessión",
+          text: "¿deseas cerrar tu sessión?.",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#d33",
+          cancelButtonColor: "#3085d6",
+          confirmButtonText: "Sí",
+          cancelButtonText: "No",
+        }).then(async (result) => {
+          if (result.isConfirmed) {
+            try {
+              await logout(); // Llama a la función de logout de la API
+              localStorage.removeItem('token'); // Elimina el token después de la llamada exitosa
+              navigate('/'); // Redirige al login
+            } catch (error) {
+              console.error('Error al cerrar sesión:', error);
+              // Maneja el error 
+              localStorage.removeItem('token'); // Elimina el token incluso si hay un error
+              navigate('/'); // Redirige al login
+            }
+          }
+        });
+     
   };
 
   return (
@@ -96,12 +147,16 @@ const ContactsList = ({ setShowForm, setShowSearch, onSelectContact, manageUsers
           Empleados
         </button>
       </div>
-      <div className=" flex h-[80vh]  overflow-y-auto ">
+      <div className=" flex h-[84vh]  overflow-y-auto ">
 
-        <div className=" p-4">
-          <ul className="space-y-2 text-center">
+        <div className=" px-4 sticky -top-3 ">
+          <ul className="space-y-1 text-center">
             {alphabet.map((letter) => (
-              <li key={letter} className="text-gray-700 font-medium">{letter}</li>
+              <li key={letter} 
+              className={`text-gray-700 font-medium text-xs cursor-pointer
+                 ${selectedLetter === letter ? "font-bold text-purple-600" : ""}`}
+                 onClick={() => setSelectedLetter(letter)}
+              >{letter}</li>
             ))}
           </ul>
         </div>
@@ -112,7 +167,9 @@ const ContactsList = ({ setShowForm, setShowSearch, onSelectContact, manageUsers
 
             <ul className="divide-y divide-gray-300">
               {sortedContacts.map((contact) => (
-                <li key={contact.id} className="p-3 rounded-lg flex items-center cursor-pointer hover:bg-purple-200 transition-all"
+                <li key={contact.id} 
+                  ref={(el) => setContactRef(el, contact.id)}
+                  className="p-3 rounded-lg flex items-center cursor-pointer hover:bg-purple-200 transition-all"
                   onClick={() => onSelectContact(contact)}>
 
                   <div className="w-10 h-10 rounded-full overflow-hidden border mr-4 border-purple-300">

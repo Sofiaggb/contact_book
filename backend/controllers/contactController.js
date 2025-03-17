@@ -144,7 +144,7 @@ export const controller = {
 
   // Obtener contactos con filtros
   getFiltered: async (req, res) => {
-    const { searchTerm, role,department, gender, date } = req.query;
+    const { searchTerm, role,department, gender, date, dateInit, dateFin } = req.query;
     try {
       // Construir los filtros dinámicamente
       const filters = {};
@@ -176,6 +176,20 @@ export const controller = {
 
       if (date) {
         filters.birthday = Sequelize.literal(` EXTRACT(MONTH FROM "birthday" AT TIME ZONE 'UTC') = ${Number(date)}`);
+      }
+
+       // Agregar filtros de fecha (dateInit y dateFin)
+      if (dateInit && dateFin) {
+        const startDate = new Date(dateInit);
+        const endDate = new Date(dateFin);
+
+        if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+          filters.birthday = {
+            [Op.between]: [startDate, endDate]
+          };
+        } else {
+          return res.status(400).json({ error: 'Fechas de inicio y fin inválidas' });
+        }
       }
 
       // Buscar contactos con los filtros

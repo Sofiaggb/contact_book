@@ -2,14 +2,23 @@ import { UserIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
 import {getRoles, getDepartments } from "../api/contactService";
 import { API_URL } from "../api/api";
+import { validateForm } from "../utils/AuthForm";
 
 export const FormContact = ({ addContact, editingContact, updateContact}) => {
 
   const [roles, setRoles] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [error, setError] = useState("");
+  const [maxDate, setMaxDate] = useState("");
 
   useEffect(() => {
+    // establecer fecha maxima el años actual menos 16 años
+    const today = new Date();
+    const year = today.getFullYear() - 16;
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    setMaxDate(`${year}-${month}-${day}`);
+
     // Obtener roles y departamentos
     const fetchRolesAndDepartments = async () => {
       try {
@@ -24,6 +33,7 @@ export const FormContact = ({ addContact, editingContact, updateContact}) => {
 
     fetchRolesAndDepartments();
   }, []);
+
 
   const initialState = {
     first_name: "",
@@ -83,6 +93,13 @@ export const FormContact = ({ addContact, editingContact, updateContact}) => {
 
   const handleSubmit = async(e) => {
     e.preventDefault();
+
+    const errors = validateForm(contact);
+
+    if (Object.keys(errors).length > 0) {
+      setError(errors);
+      return;
+    }
     setError("");
 
     try {
@@ -102,10 +119,9 @@ export const FormContact = ({ addContact, editingContact, updateContact}) => {
         if (contact.departmentId !== null && contact.departmentId !== "") {
           formData.append("departmentId", contact.departmentId);
         } 
-    
+
         if (editingContact) {
           // Llamar a la función para editar el contacto 
-          console.log(formData);
           updateContact(editingContact.id, formData); 
         } else {
           
@@ -305,6 +321,8 @@ export const FormContact = ({ addContact, editingContact, updateContact}) => {
               value={contact.birthday}
               onChange={handleChange}
               className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              min="1930-01-01"
+              max={maxDate}
             />
           </div>
         </div>
@@ -322,8 +340,13 @@ export const FormContact = ({ addContact, editingContact, updateContact}) => {
           />
         </div>
 
-        {error && <p className="mb-4 text-red-500 text-sm text-center">{error}</p>}
-
+        {error && (
+          <div className="text-red-500">
+            {Object.entries(error).map(([key, value]) => (
+              <p key={key}>{value}</p>
+            ))}
+          </div>
+        )}
         {/* Botón de Enviar */}
         <div className="text-center">
           <button

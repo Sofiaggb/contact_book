@@ -12,6 +12,8 @@ export const Search = ({onSelectContact }) => {
   const [departmentFilter, setdepartmentFilter] = useState("");
   const [genderFilter, setGenderFilter] = useState("");
   const [birthdayFilter, setBirthdayFilter] = useState("");
+  const [dateInitFilter, setDateInitFilter] = useState("");
+  const [dateFinFilter, setDateFinFilter] = useState("");
 
   const [roles, setRoles] = useState([]);
   const [departments, setDepartments] = useState([]);
@@ -24,8 +26,13 @@ export const Search = ({onSelectContact }) => {
         role: roleFilter,
         department:  roleFilter === "1" ? "" : departmentFilter,
         gender: genderFilter,
-        date: birthdayFilter,
+        date: birthdayFilter
       };
+      if (dateInitFilter && dateFinFilter) {
+        filters.dateInit = dateInitFilter;
+        filters.dateFin = dateFinFilter;
+      }
+      // console.log(filters)
       const data = await searchContacts(filters); // Llamar a la API
       console.log(data.contacts)
       setContacts(data.contacts);
@@ -64,7 +71,7 @@ export const Search = ({onSelectContact }) => {
       setdepartmentFilter("");
     }
     fetchContacts();
-  }, [searchTerm, roleFilter, departmentFilter, genderFilter, birthdayFilter])
+  }, [searchTerm, roleFilter, departmentFilter, genderFilter, birthdayFilter, dateInitFilter, dateFinFilter])
 
 
   // Exportar los contactos filtrados a PDF
@@ -120,7 +127,7 @@ export const Search = ({onSelectContact }) => {
                 name="departmentId"
                 value={departmentFilter}
                 onChange={(e) => setdepartmentFilter(e.target.value)}
-                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 col-span-2"
                 required
               >
                 <option value="">Departamento</option>
@@ -135,30 +142,59 @@ export const Search = ({onSelectContact }) => {
           )}
 
         {/* Filtro por género */}
-        <select
-          className="p-2 border rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
-          value={genderFilter}
-          onChange={(e) => setGenderFilter(e.target.value)}
-        >
-          <option value="">Género</option>
-          <option value="M">Masculino</option>
-          <option value="F">Femenino</option>
-        </select>
-
+        <div className="flex items-end">
+          <select
+            className="p-2 border w-full rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
+            value={genderFilter}
+            onChange={(e) => setGenderFilter(e.target.value)}
+          >
+            <option value="">Género</option>
+            <option value="M">Masculino</option>
+            <option value="F">Femenino</option>
+          </select>
+        </div>
+        
       
         {/* Filtro por cumpleaño mes */}
-        <select 
-          className="p-2 border rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
-          onChange={(e) => setBirthdayFilter(e.target.value)}
-        >
-          <option value="">Cumpleaños mes</option>
-          {months.map((month) => (
-            <option key={month.value} value={month.value}>
-              {month.label}
-            </option>
-          ))}
-        </select>
+        <div className="flex items-end">
+          <select 
+            className="p-2 border rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
+            onChange={(e) => setBirthdayFilter(e.target.value)}
+          >
+            <option value="">Cumpleaños mes</option>
+            {months.map((month) => (
+              <option key={month.value} value={month.value}>
+                {month.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        
+        <div>
+          <label htmlFor="dateInit" className="block text-gray-700 font-medium">Desde</label>
+ 
+          <input type="date"
+            className="border p-2 rounded focus:outline-none focus:ring-2 focus:ring-purple-500" 
+            name="dateInit" 
+            id="dateInit" 
+            placeholder="Desde"
+            value={dateInitFilter}
+            onChange={(e) => setDateInitFilter(e.target.value)}
+          />
+        </div>
 
+        <div>
+          <label htmlFor="dateFin" className="block text-gray-700 font-medium">Hasta</label>
+          <input type="date"
+            className="border p-2 rounded focus:outline-none focus:ring-2 focus:ring-purple-500" 
+            name="dateFin" 
+            id="dateFin" 
+            placeholder="Hasta"
+            value={dateFinFilter}
+            onChange={(e) => setDateFinFilter(e.target.value)}
+          />
+        </div>
+        
       </div> 
 
       {/* Botón de exportar PDF */}
@@ -169,7 +205,6 @@ export const Search = ({onSelectContact }) => {
         <span>Exportar PDF</span> 
         <DocumentIcon className="w-6 text-white"/>
       </button>
-      {/* </div> */}
 
 
       {/* Tabla de resultados */}

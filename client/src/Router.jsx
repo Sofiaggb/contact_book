@@ -18,9 +18,6 @@ const AppRoutes = () => {
 
       <Route path="*" element={<Error />} />
 
-
-      
-
     </Routes>
   );
 };

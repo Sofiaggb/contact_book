@@ -1,7 +1,11 @@
-import { ArrowUturnLeftIcon, PencilIcon, TrashIcon, UserIcon } from "@heroicons/react/24/outline"
+import { ArrowUturnLeftIcon, PencilIcon, TrashIcon, UserIcon, 
+        PhoneIcon, EnvelopeIcon 
+      } from "@heroicons/react/24/outline"
+     
 import { API_URL } from "../api/api"
+import WhatsappIcon from "../assets/images/icons/WhatsAppIcon"
 
-export const Contact = ({contact, onEdit, onBack, onDelete }) => {
+export const Contact = ({contact, onEdit, onBack, onDelete} ) => {
     return (
 
         <div className=" bg-gray-50 p-6 flex justify-center">
@@ -28,12 +32,37 @@ export const Contact = ({contact, onEdit, onBack, onDelete }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <label className="block text-gray-600 font-medium">Teléfono</label>
-              <p className="p-2 bg-gray-100 rounded-lg text-gray-800">{contact.phone}</p>
+              <div className=" items-center mr-1">
+              
+                <p className="p-2 bg-gray-100 rounded-lg text-gray-800 flex-grow">{contact.phone}</p>
+                
+                <div className="flex gap-3 mt-1">
+                  <a href={`tel:${contact.phone}`} className="ml-2 text-purple-600 hover:text-purple-800">
+                    <PhoneIcon className="w-6 h-6" /> 
+                  </a>
+                  <a href={`https://wa.me/${contact.phone.replace("+", "")}`} target="_blank" rel="noopener noreferrer" className="ml-2 text-green-600 hover:text-green-800">
+                    < WhatsappIcon className="w-6 h-6"/>
+                  </a>
+                </div>
+              </div>
             </div>
       
             <div>
               <label className="block text-gray-600 font-medium">Otro Teléfono</label>
-              <p className="p-2 bg-gray-100 rounded-lg text-gray-800">{contact.other_phone}</p>
+              <div className=" items-center">
+                <p className="p-2 bg-gray-100 rounded-lg text-gray-800 flex-grow">{contact.other_phone}</p>
+                
+                <div className="flex gap-3 mt-1">
+                  <a href={`tel:${contact.other_phone}`} className="ml-2 text-purple-600 hover:text-purple-800">
+                    <PhoneIcon className="w-6 h-6" />
+                  </a>
+                  <a href={`https://wa.me/${contact.other_phone.replace("+", "")}`} target="_blank" rel="noopener noreferrer" className="ml-2 text-green-600 hover:text-green-800">
+                    {/* <ChatBubbleLeftIcon className="w-6 h-6" /> */}
+                    < WhatsappIcon className="w-6 h-6"/>
+                  </a>
+                </div>
+                
+              </div>
             </div>
       
             <div>
@@ -45,7 +74,12 @@ export const Contact = ({contact, onEdit, onBack, onDelete }) => {
       
             <div>
               <label className="block text-gray-600 font-medium">Email</label>
-              <p className="p-2 bg-gray-100 rounded-lg text-gray-800">{contact.email}</p>
+              <div className="flex items-center">
+                <p className="p-2 bg-gray-100 rounded-lg text-gray-800 flex-grow">{contact.email}</p>
+                <a href={`mailto:${contact.email}`} className="ml-2 text-blue-600 hover:text-blue-800">
+                  <EnvelopeIcon className="w-6 h-6" />
+                </a>
+              </div>
             </div>
       
             <div>
