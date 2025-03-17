@@ -54,10 +54,10 @@ export const Dashboard = () => {
     }
   };
 
-  const handleSelectContact = (contact, search) => {
+  const handleSelectContact = (id, search) => {
     setSearchQuery(search);
     // setShowSearch(false);
-    setSelectedContact(contact);
+    setSelectedContact(id);
     setShowManageUsers(false)
     setShowForm(false); // Ocultamos el formulario al seleccionar un contacto
   };
@@ -156,16 +156,12 @@ export const Dashboard = () => {
 
               ): selectedContact ? (
                   <Contact 
-                  contact={selectedContact} 
+                  idContact={selectedContact} 
                   onEdit={handleEditContact} 
                   onBack={handleBackToSearch}
                   onDelete={handleDeleteContact} 
                   />
-              ): 
-              // showSearch ? (
-              //   <Search onSelectContact={handleSelectContact}/>
-              // ): 
-              (
+              ):(
                 <Search 
                   onSelectContact={handleSelectContact}
                   searchQuery={searchQuery}

@@ -126,28 +126,28 @@ const ContactsList = ({ setShowForm, setShowSearch, onSelectContact, manageUsers
       {/* Botones de filtro */}
       <div className="flex justify-center space-x-4 mt-4">
         <button
-          className={`px-4 py-2 rounded-lg ${filter === "Todos" ? "bg-purple-500 text-white" : "bg-gray-300"
+          className={`px-4 py-1 rounded-lg ${filter === "Todos" ? "bg-purple-500 text-white" : "bg-gray-300"
             }`}
           onClick={() => setFilter("Todos")}
         >
           Todos
         </button>
         <button
-          className={`px-4 py-2 rounded-lg ${filter === 1 ? "bg-blue-500 text-white" : "bg-gray-300"
+          className={`px-4 py-1 rounded-lg ${filter === 1 ? "bg-blue-500 text-white" : "bg-gray-300"
             }`}
           onClick={() => setFilter(1)}
         >
           Clientes
         </button>
         <button
-          className={`px-4 py-2 rounded-lg ${filter === 2 ? "bg-indigo-500 text-white" : "bg-gray-300"
+          className={`px-4 py-1 rounded-lg ${filter === 2 ? "bg-indigo-500 text-white" : "bg-gray-300"
             }`}
           onClick={() => setFilter(2)}
         >
           Empleados
         </button>
       </div>
-      <div className=" flex h-[84vh]  overflow-y-auto ">
+      <div className=" flex h-[85vh]  overflow-y-auto ">
 
         <div className=" px-4 sticky -top-3 ">
           <ul className="space-y-1 text-center">
@@ -170,7 +170,7 @@ const ContactsList = ({ setShowForm, setShowSearch, onSelectContact, manageUsers
                 <li key={contact.id} 
                   ref={(el) => setContactRef(el, contact.id)}
                   className="p-3 rounded-lg flex items-center cursor-pointer hover:bg-purple-200 transition-all"
-                  onClick={() => onSelectContact(contact)}>
+                  onClick={() => onSelectContact(contact.id)}>
 
                   <div className="w-10 h-10 rounded-full overflow-hidden border mr-4 border-purple-300">
                     {contact.image ? (

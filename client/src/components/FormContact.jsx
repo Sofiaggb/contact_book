@@ -101,7 +101,7 @@ export const FormContact = ({ addContact, editingContact, updateContact}) => {
       return;
     }
     setError("");
-
+    
     try {
         const formData = new FormData();
     
@@ -109,7 +109,7 @@ export const FormContact = ({ addContact, editingContact, updateContact}) => {
         formData.append("first_name", contact.first_name);
         formData.append("last_name", contact.last_name);
         formData.append("phone", contact.phone);
-        formData.append("other_phone", contact.other_phone);
+        formData.append ( "other_phone",  contact.other_phone === "" ? null : contact.other_phone );
         formData.append("email", contact.email);
         formData.append("address", contact.address);
         formData.append("roleId", contact.roleId);
@@ -223,7 +223,7 @@ export const FormContact = ({ addContact, editingContact, updateContact}) => {
               value={contact.other_phone}
               onChange={handleChange}
               className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-              required
+            
             />
           </div>
 

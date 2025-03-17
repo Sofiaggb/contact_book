@@ -113,7 +113,12 @@ export const controller = {
     const { id } = req.params;  // Tomar el id del contacto desde los parámetros de la URL
 
     try {
-      const contact = await Contact.findByPk(id);  // Buscar el contacto por ID
+      const contact = await Contact.findByPk(id, {
+        include: [
+          { model: Role, as: 'role', attributes: ['id', 'name'] },
+          { model: Department, as: 'department', attributes: ['id', 'name'] },
+        ],
+      });  // Buscar el contacto por ID
       if (!contact) {
         return res.status(404).json({ error: 'Contacto no encontrado' });  // Si no se encuentra el contacto
       }

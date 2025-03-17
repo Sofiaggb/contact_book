@@ -229,7 +229,7 @@ export const Search = ({onSelectContact }) => {
               <td className="p-4 border-b">{contact.email}</td>
               <td className="p-4 border-b text-center">
                 <button className="p-2 bg-purple-500 text-white rounded-full hover:bg-purple-700 transition"
-                onClick={() => onSelectContact(contact)} //  Selección del contacto
+                onClick={() => onSelectContact(contact.id)} //  Selección del contacto
                 >
                   <PlusIcon className="w-5 h-5" />
                 </button>
