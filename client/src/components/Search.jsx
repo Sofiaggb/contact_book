@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import {  PlusIcon, DocumentIcon } from "@heroicons/react/24/outline";
 import { getDepartments, getRoles, searchContacts } from "../api/contactService";
 import { months } from "../data/MonthsData";
+import { exportToPDF } from "../utils/GeneratePDF";
 
 export const Search = ({onSelectContact }) => {
   const [contacts, setContacts] = useState([]); // Estado para almacenar contactos
@@ -74,17 +73,19 @@ export const Search = ({onSelectContact }) => {
   }, [searchTerm, roleFilter, departmentFilter, genderFilter, birthdayFilter, dateInitFilter, dateFinFilter])
 
 
-  // Exportar los contactos filtrados a PDF
-  const exportToPDF = () => {
-    const doc = new jsPDF();
-    doc.text("Lista de Contactos", 14, 10);
-    autoTable(doc, {
-      head: [["Nombre", "Apellido", "Email", "Categoría"]],
-      body: contacts.map((contact) => [contact.first_name , contact.last_name, contact.email, contact.role.name]),
-      startY: 20,
-    });
-    doc.save("contactos.pdf");
-  };
+  // // Exportar los contactos filtrados a PDF
+  // const exportToPDF = () => {
+  //   const doc = new jsPDF();
+  //   doc.text("Lista de Contactos", 14, 10);
+  //   autoTable(doc, {
+  //     head: [["Nombre", "Apellido", "Email", "Categoría"]],
+  //     body: contacts.map((contact) => [contact.first_name , contact.last_name, contact.email, contact.role.name]),
+  //     startY: 20,
+  //   });
+  //   doc.save("contactos.pdf");
+  // };
+  
+
   
 
   return (
@@ -200,7 +201,8 @@ export const Search = ({onSelectContact }) => {
       {/* Botón de exportar PDF */}
       <button
         className="m-2 flex bg-indigo-600 text-white py-2 px-4 rounded hover:bg-purple-700"
-        onClick={exportToPDF}
+         // Exportar los contactos filtrados a PDF
+        onClick={() => exportToPDF(contacts)}
       >
         <span>Exportar PDF</span> 
         <DocumentIcon className="w-6 text-white"/>
@@ -216,6 +218,7 @@ export const Search = ({onSelectContact }) => {
             <th className="p-4 text-left">Apellido</th>
             <th className="p-4 text-left">Teléfono</th>
             <th className="p-4 text-left">Email</th>
+            <th className="p-4 text-left">Creación</th>
             <th className="p-4 text-center w-16"></th>
           </tr>
         </thead>
@@ -227,6 +230,7 @@ export const Search = ({onSelectContact }) => {
               <td className="p-4 border-b">{contact.last_name}</td>
               <td className="p-4 border-b">{contact.phone}</td>
               <td className="p-4 border-b">{contact.email}</td>
+              <td className="p-4 border-b">{ new Date(contact.createdAt).toISOString().split("T")[0]}</td>
               <td className="p-4 border-b text-center">
                 <button className="p-2 bg-purple-500 text-white rounded-full hover:bg-purple-700 transition"
                 onClick={() => onSelectContact(contact.id)} //  Selección del contacto

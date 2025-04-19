@@ -154,12 +154,11 @@ export const FormContact = ({ addContact, editingContact, updateContact}) => {
             <div className="relative">
               {/* Imagen redonda */}
               <div className="w-32 h-32 rounded-full overflow-hidden border border-purple-300">
-                {editingContact && editingContact.image ? (
-                  <img src={API_URL + editingContact.image} alt="Profile" className="w-full h-full object-cover" />
-                ): contact.imageURL ? (
+                { contact.imageURL ? (
                   <img src={contact.imageURL} alt="Profile" className="w-full h-full object-cover" />
+                ): editingContact && editingContact.image ? (
+                  <img src={API_URL + editingContact.image} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
-
                   <div className="flex items-center justify-center w-full h-full bg-purple-200">
                     <UserIcon className="w-3/4 h-3/4"/>
                   </div>

@@ -10,6 +10,7 @@ import { getAllContacts } from "../api/contactService";
 import { API_URL } from "../api/api";
 import { logout } from "../api/authService";
 import Swal from "sweetalert2";
+import { getCurrentUser } from "../utils/Auth";
 
 const ContactsList = ({ setShowForm, setShowSearch, onSelectContact, manageUsers, refresh }) => {
   const [contacts, setContacts] = useState([]);
@@ -18,6 +19,10 @@ const ContactsList = ({ setShowForm, setShowSearch, onSelectContact, manageUsers
   const letterRefs = useRef({});
 
   const navigate = useNavigate()
+
+  const currentUser = getCurrentUser(); // { id, email, roleId }
+
+  // console.log(currentUser.roleId)
 
   // Llamar a la API para obtener los contactos
   useEffect(() => {
@@ -104,9 +109,11 @@ const ContactsList = ({ setShowForm, setShowSearch, onSelectContact, manageUsers
     <div className="w-[28%] bg-gray-100 ">
       <div className="flex justify-between mx-4 mt-4 ">
         <div>
-          <Cog6ToothIcon className="w-6 h-6 text-gray-500 cursor-pointer" 
-          onClick={() => manageUsers(true)} />
-
+          {currentUser.roleId == 1 &&
+            <Cog6ToothIcon className="w-6 h-6 text-gray-500 cursor-pointer" 
+            onClick={() => manageUsers(true)} />
+          }
+          
         </div>
 
         <div className="flex space-x-4">
@@ -166,30 +173,36 @@ const ContactsList = ({ setShowForm, setShowSearch, onSelectContact, manageUsers
             <h2 className="text-2xl font-bold text-center text-gray-700 mb-4">Lista de Contáctos</h2>
 
             <ul className="divide-y divide-gray-300">
-              {sortedContacts.map((contact) => (
-                <li key={contact.id} 
-                  ref={(el) => setContactRef(el, contact.id)}
-                  className="p-3 rounded-lg flex items-center cursor-pointer hover:bg-purple-200 transition-all"
-                  onClick={() => onSelectContact(contact.id)}>
+              {sortedContacts.map((contact) => {
+                const startsWithSelectedLetter = selectedLetter &&  contact.first_name.toUpperCase().startsWith(selectedLetter);
 
-                  <div className="w-10 h-10 rounded-full overflow-hidden border mr-4 border-purple-300">
-                    {contact.image ? (
-                      <img
-                        src={API_URL + contact.image}
-                        alt={contact.first_name}
-                        className=" w-full h-full  object-cover"
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center w-full h-full bg-purple-200">
-                        <UserIcon className="w-6 h-6 text-gray-900 cursor-pointer" />
-                      </div>
-                    )
-                    }
-                  </div>
+                return (
+                  <li key={contact.id} 
+                    ref={(el) => setContactRef(el, contact.id)}
+                    className={`p-3 rounded-lg flex items-center cursor-pointer hover:bg-purple-200 transition-all
+                      ${startsWithSelectedLetter ? "bg-purple-100" : ""}
+                    `}
+                    onClick={() => onSelectContact(contact.id)}>
 
-                  <span className="text-gray-800 font-medium">{contact.first_name + " " + contact.last_name}</span>
-                </li>
-              ))}
+                    <div className="w-10 h-10 rounded-full overflow-hidden border mr-4 border-purple-300">
+                      {contact.image ? (
+                        <img
+                          src={API_URL + contact.image}
+                          alt={contact.first_name}
+                          className=" w-full h-full  object-cover"
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center w-full h-full bg-purple-200">
+                          <UserIcon className="w-6 h-6 text-gray-900 cursor-pointer" />
+                        </div>
+                      )
+                      }
+                    </div>
+
+                    <span className="text-gray-800 font-medium">{contact.first_name + " " + contact.last_name}</span>
+                  </li>
+                )
+              })}
             </ul>
           </div>
         </div>

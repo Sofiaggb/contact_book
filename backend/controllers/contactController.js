@@ -189,7 +189,7 @@ export const controller = {
         const endDate = new Date(dateFin);
 
         if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
-          filters.birthday = {
+          filters.createdAt = {
             [Op.between]: [startDate, endDate]
           };
         } else {

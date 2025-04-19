@@ -2,16 +2,21 @@ import { useState, useEffect } from "react";
 import { getAllUsers, deleteUser } from "../api/userService";
 import Swal from "sweetalert2";
 import { TrashIcon } from "@heroicons/react/24/outline";
+import { getCurrentUser } from "../utils/Auth";
+
 
 export const UserManagement = () => {
 
   const [users, setUsers] = useState([]);
+  const currentUser = getCurrentUser(); // { id, email, roleId }
+  
    // Obtener todos los usuarios
    useEffect(() => {
     const fetchUsers = async () => {
       try {
         const data = await getAllUsers();
         setUsers(data.users); // Asegúrate de que la API devuelve `{ users: [...] }`
+        
       } catch (error) {
         console.error("Error al obtener usuarios:", error);
       }
@@ -19,6 +24,9 @@ export const UserManagement = () => {
 
     fetchUsers();
   }, []);
+
+  // Filtrar usuarios excluyendo al usuario actual
+  const filteredUsers = users.filter(user => user.id !== currentUser?.id);
 
    // Eliminar usuario con SweetAlert2
   const onDeleteUser = async (id) => {
@@ -64,7 +72,7 @@ export const UserManagement = () => {
         </thead>
         <tbody className=" divide-y divide-gray-500">
           
-          {users.map((user) => (
+          {filteredUsers.map((user) => (
             <tr key={user.id} className="hover:bg-gray-100 transition">
               <td className="border-b border-gray-300 p-4 ">{user.name} </td>
               <td className="border-b border-gray-300 p-4 ">{user.email}</td>
@@ -91,3 +99,4 @@ export const UserManagement = () => {
     </div>
   );
 };
+

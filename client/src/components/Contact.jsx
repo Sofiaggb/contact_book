@@ -5,12 +5,15 @@ import { API_URL } from "../api/api"
 import WhatsappIcon from "../assets/images/icons/WhatsAppIcon"
 import { useEffect, useState } from "react";
 import { getContactById } from "../api/contactService";
+import { getCurrentUser } from "../utils/Auth";
 
 export const Contact = ({idContact, onEdit, onBack, onDelete} ) => {
   const [contact, setContact] = useState(null);
   const [loading, setLoading] = useState(true); // Nuevo estado para la carga
   const [error, setError] = useState(null); // Nuevo estado para errores
 
+  const currentUser = getCurrentUser(); // { id, email, roleId }
+  
   useEffect(() => {
     const fetchContact = async () => {
       setLoading(true); // Inicia la carga
@@ -137,7 +140,8 @@ export const Contact = ({idContact, onEdit, onBack, onDelete} ) => {
         
         <div className="mt-6 flex gap-10 ">
           {/* Botón de Eliminar */}
-          <button
+          {currentUser.roleId == 1 &&
+            <button
             type="button"
             className="text-red-700 hover:text-red-800 transition flex flex-col items-center group"
             onClick={() => onDelete(contact.id)}
@@ -149,6 +153,8 @@ export const Contact = ({idContact, onEdit, onBack, onDelete} ) => {
             
             <span className="h-px bg-red-800 w-0  group-hover:w-full transition-all duration-300"></span>
           </button>
+          }
+          
 
       {/* Botón de editar */}
           <button
